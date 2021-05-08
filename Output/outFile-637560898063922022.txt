@@ -1,1 +1,0 @@
-Many extraction methods rely on ranking the sentences in the source text. However this may not necessarily be the best way of ranking the sentences. For example the given algorithm will generate a summary text that contains sentences arranged in the order of their importance, not necessarily in their original order or in a meaningful order. 
