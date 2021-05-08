@@ -35,24 +35,65 @@ namespace SummaryApp
             Console.WriteLine("Starting summarization.");
 
             // Get inFile data
-            var inFileData = GetAllWordsFromFile(InFileLocation);
-            var inFileWordLength = inFileData.Count();
-            var inFileFreqList = BuildWordFrequencyList(inFileData);
+            var inFileSentences = GetSentencesFromFile(InFileLocation);
+            var inFileWords = inFileSentences.SelectMany(GetWordsFromString).ToList();
+            var inFileWordLength = inFileWords.Count();
+
             
-            // Sort by highest frequency
+            // Build frequency list (Sort by highest frequency)
+            var inFileFreqList = BuildWordFrequencyList(inFileWords);
             inFileFreqList.Sort(new WordDataComparer(SortOrder.Descending));
 
-            // TODO: get inFile sentences
-            // loop through sentences
-            // Calculate summarization factor
+            // Load stopwords
+            var stopWords = GetAllWordsFromFile(StopWordFileLocation);
 
-            // Print list
-            inFileFreqList.ForEach(i => Console.WriteLine($"Word: {i.Word} Frequency: {i.Frequency}"));
+            // Filter word frequency list
+            stopWords.ForEach(i =>
+            {
+                WordData foundWord = null;
+                if ((foundWord = inFileFreqList.FirstOrDefault(j => j.Word == i)) != null)
+                {
+                    inFileFreqList.Remove(foundWord);
+                }
+            });
+
+            // Calculate summarization factor
+            while (CalculateSummarizationFactor(SummarizedWordCount, inFileWordLength) < SummarizationFactor && inFileFreqList.Any())
+            {
+                var topWord = inFileFreqList.FirstOrDefault();
+
+                // Find sentence with highest word frequency
+                var sentenceWordOccurences = inFileSentences.Select(i =>
+                {
+                    var sentenceWordList = GetWordsFromString(i);
+                    var wordOccurences = sentenceWordList.Count(i => i == topWord.Word);
+                    return new WordData { Word = i, Frequency = wordOccurences };
+                });
+
+                var highestFrequency = sentenceWordOccurences.Max(i => i.Frequency);
+                var sentenceWithMost = sentenceWordOccurences.FirstOrDefault(i => i.Frequency == highestFrequency);
+
+                var newSummaryWordCount = SummarizedWordCount + GetWordsFromString(sentenceWithMost.Word).Count();
+                var newSF = CalculateSummarizationFactor(newSummaryWordCount, inFileWordLength);
+
+                if (newSF <= SummarizationFactor)
+                {
+                    SummarizedText.Append(sentenceWithMost.Word);
+                    inFileSentences.Remove(sentenceWithMost.Word);
+                    inFileFreqList.Remove(topWord);
+                }
+            }
         }
 
-        private int CalculateSummarizationFactor(int inFileLength)
+        private int CalculateSummarizationFactor(int summarizeLength, int inputLength)
         {
-            return (SummarizedWordCount * 100) / inFileLength;
+            return (summarizeLength * 100) / inputLength;
+        }
+
+
+        private void PrintWordList(List<WordData> wordList)
+        {
+            wordList.ForEach(i => Console.WriteLine($"Word: {i.Word} Frequency: {i.Frequency}"));
         }
 
 
