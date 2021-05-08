@@ -3,69 +3,40 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text.RegularExpressions;
+using System.Text;
 
 namespace SummaryApp
 {
     public class SummaryProcessor
     {
-        private string InFileLocation { get; set; }
-        private string StopWordFileLocation { get; set; }
-        public int SummarizationFactor { get; }
-        private List<string> SummarizedText { get; set; } = new List<string>();
-        private int SummarizedWordCount
+        public static void SummarizeText(List<string> inFileSentences, int summarizationFactor, List<string> stopWords = null)
         {
-            get
-            {
-                string text = string.Join(" ", SummarizedText);
-                return !string.IsNullOrEmpty(text) ? GetWordsFromString(text).Count() : 0;
-            }
-        }
-
-        public SummaryProcessor(string inFileLocation, string stopFileLocation, int sf)
-        {
-            this.InFileLocation = inFileLocation;
-            this.StopWordFileLocation = stopFileLocation;
-            this.SummarizationFactor = sf;
-        }
-
-        public void SummarizeText()
-        {
-            Console.WriteLine("Starting summarization.");
+           ProcessorUtils.PrintMessage("Starting summarization.", ConsoleColor.Green);
 
             // Get inFile data
-            var inFileSentences = GetSentencesFromFile(InFileLocation);
-            var inFileWords = inFileSentences.SelectMany(GetWordsFromString).ToList();
+            var inFileWords = inFileSentences.SelectMany(ProcessorUtils.GetWordsFromString).ToList();
             var inFileWordLength = inFileWords.Count();
 
-            
+
             // Build frequency list (Sort by highest frequency)
-            var inFileFreqList = BuildWordFrequencyList(inFileWords);
+            var inFileFreqList = ProcessorUtils.BuildWordFrequencyList(inFileWords);
             inFileFreqList.Sort(new WordDataComparer(SortOrder.Descending));
 
-            // Load stopwords
-            var stopWords = GetAllWordsFromFile(StopWordFileLocation);
-
             // Filter word frequency list
-            stopWords.ForEach(i =>
-            {
-                WordData foundWord = null;
-                if ((foundWord = inFileFreqList.FirstOrDefault(j => j.Word == i)) != null)
-                {
-                    inFileFreqList.Remove(foundWord);
-                }
-            });
+            inFileFreqList = stopWords != null ? FilterFrequencyList(inFileFreqList, stopWords) : inFileFreqList;
+
+            var summarizedText = new StringBuilder();
 
             // Calculate summarization factor
-            var currentSF = CalculateSummarizationFactor(SummarizedWordCount, inFileWordLength);
-            while (currentSF < SummarizationFactor && inFileFreqList.Any() && inFileSentences.Any())
+            var currentSF = CalculateSummarizationFactor(GetWordCount(summarizedText), inFileWordLength);
+            while (currentSF < summarizationFactor && inFileFreqList.Any() && inFileSentences.Any())
             {
                 var topWord = inFileFreqList.FirstOrDefault();
 
                 // Find sentence with highest word frequency
                 var sentenceWordOccurences = inFileSentences.Select(i =>
                 {
-                    var sentenceWordList = GetWordsFromString(i);
+                    var sentenceWordList = ProcessorUtils.GetWordsFromString(i);
                     var wordOccurences = sentenceWordList.Count(i => i == topWord.Word);
                     return new WordData { Word = i, Frequency = wordOccurences };
                 });
@@ -73,79 +44,50 @@ namespace SummaryApp
                 var highestFrequency = sentenceWordOccurences.Max(i => i.Frequency);
                 var sentenceWithMost = sentenceWordOccurences.FirstOrDefault(i => i.Frequency == highestFrequency);
 
-                var newSummaryWordCount = SummarizedWordCount + GetWordsFromString(sentenceWithMost.Word).Count();
+                var newSummaryWordCount = GetWordCount(summarizedText) + ProcessorUtils.GetWordsFromString(sentenceWithMost.Word).Count();
                 var newSF = CalculateSummarizationFactor(newSummaryWordCount, inFileWordLength);
 
                 // TODO: Change summarization factor to float / double
-                if (newSF <= SummarizationFactor)
+                if (newSF <= summarizationFactor)
                 {
-                    SummarizedText.Add(sentenceWithMost.Word.Trim());
+                    summarizedText.Append($"{sentenceWithMost.Word.Trim()} ");
                     currentSF = newSF;
                 }
 
                 inFileSentences.Remove(sentenceWithMost.Word);
                 inFileFreqList.Remove(topWord);
             }
-            Console.WriteLine(string.Join(" ", SummarizedText));
+
+            // Print summarized text to console
+            ProcessorUtils.PrintMessage("Summarized text", ConsoleColor.Green);
+            Console.Write(summarizedText.ToString());
+
+            // Print actual summarization factor
+            ProcessorUtils.PrintMessage($"Actual summarization factor: {currentSF}", ConsoleColor.Green);
+
+            // Print to file
+            string outFileName = GetOutFileName();
+            File.WriteAllText($"../../../Output/{outFileName}.txt", summarizedText.ToString());
         }
 
-        private int CalculateSummarizationFactor(int summarizeLength, int inputLength)
+        private static string GetOutFileName()
+        {
+            return $"outFile-{DateTime.Now.Ticks}";
+        }
+
+        private static int GetWordCount(StringBuilder text)
+        {
+            return ProcessorUtils.GetWordsFromString(text.ToString()).Count();
+        }
+
+        private static List<WordData> FilterFrequencyList(List<WordData> frequencyList, List<string> filterList)
+        {
+            return frequencyList.Where(i => !filterList.Contains(i.Word)).ToList();
+        }
+
+        private static int CalculateSummarizationFactor(int summarizeLength, int inputLength)
         {
             return (summarizeLength * 100) / inputLength;
-        }
-
-
-        private void PrintWordList(List<WordData> wordList)
-        {
-            wordList.ForEach(i => Console.WriteLine($"Word: {i.Word} Frequency: {i.Frequency}"));
-        }
-
-
-        private List<WordData> BuildWordFrequencyList(List<string> wordList)
-        {
-            var wordDictionary = new Dictionary<string, WordData>();
-
-            wordList.ForEach(word =>
-            {
-                if (wordDictionary.TryGetValue(word, out WordData existingNode))
-                {
-                    // Increment word count if node already exists
-                    existingNode.Frequency++;
-                }
-                else
-                {
-                    wordDictionary.Add(word, new WordData() { Word = word, Frequency = 1 });
-                }
-            });
-
-            return wordDictionary.Select(kvp => kvp.Value).ToList();
-        }
-
-        private List<string> GetAllWordsFromFile(string filePath)
-        {
-            return GetSentencesFromFile(filePath)
-                .SelectMany(GetWordsFromString)
-                .ToList();
-        }
-
-        private List<string> GetSentencesFromFile(string filePath)
-        {
-            // It is assumed that each new line contains a new sentence
-            return File.ReadLines(filePath).Select(i => i.Trim()).ToList();
-        }
-
-        private List<string> GetWordsFromString(string sentence)
-        {
-            return sentence
-                .Split(' ')
-                .Where(i => !string.IsNullOrEmpty(i))
-                .Select(CleanWord)
-                .ToList();
-        }
-
-        private string CleanWord(string word)
-        {
-            return Regex.Replace(word, "[^0-9a-zA-Z]+", "");
         }
 
     }
