@@ -3,7 +3,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Text.RegularExpressions;
 
 namespace SummaryApp
@@ -13,13 +12,13 @@ namespace SummaryApp
         private string InFileLocation { get; set; }
         private string StopWordFileLocation { get; set; }
         public int SummarizationFactor { get; }
-        private StringBuilder SummarizedText { get; set; }
+        private List<string> SummarizedText { get; set; } = new List<string>();
         private int SummarizedWordCount
         {
             get
             {
-                string text = SummarizedText?.ToString();
-                return !string.IsNullOrEmpty(text) ? text.Split(" ").Count() : 0;
+                string text = string.Join(" ", SummarizedText);
+                return !string.IsNullOrEmpty(text) ? GetWordsFromString(text).Count() : 0;
             }
         }
 
@@ -58,7 +57,8 @@ namespace SummaryApp
             });
 
             // Calculate summarization factor
-            while (CalculateSummarizationFactor(SummarizedWordCount, inFileWordLength) < SummarizationFactor && inFileFreqList.Any())
+            var currentSF = CalculateSummarizationFactor(SummarizedWordCount, inFileWordLength);
+            while (currentSF < SummarizationFactor && inFileFreqList.Any() && inFileSentences.Any())
             {
                 var topWord = inFileFreqList.FirstOrDefault();
 
@@ -76,13 +76,17 @@ namespace SummaryApp
                 var newSummaryWordCount = SummarizedWordCount + GetWordsFromString(sentenceWithMost.Word).Count();
                 var newSF = CalculateSummarizationFactor(newSummaryWordCount, inFileWordLength);
 
+                // TODO: Change summarization factor to float / double
                 if (newSF <= SummarizationFactor)
                 {
-                    SummarizedText.Append(sentenceWithMost.Word);
-                    inFileSentences.Remove(sentenceWithMost.Word);
-                    inFileFreqList.Remove(topWord);
+                    SummarizedText.Add(sentenceWithMost.Word.Trim());
+                    currentSF = newSF;
                 }
+
+                inFileSentences.Remove(sentenceWithMost.Word);
+                inFileFreqList.Remove(topWord);
             }
+            Console.WriteLine(string.Join(" ", SummarizedText));
         }
 
         private int CalculateSummarizationFactor(int summarizeLength, int inputLength)
@@ -126,8 +130,8 @@ namespace SummaryApp
 
         private List<string> GetSentencesFromFile(string filePath)
         {
-            // TODO: Assumption is that each new line contains a new sentence
-            return File.ReadLines(filePath).ToList();
+            // It is assumed that each new line contains a new sentence
+            return File.ReadLines(filePath).Select(i => i.Trim()).ToList();
         }
 
         private List<string> GetWordsFromString(string sentence)

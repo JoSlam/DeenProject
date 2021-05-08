@@ -1,8 +1,6 @@
 Many extraction methods rely on ranking the sentences in the source text. 
 The given algorithm does this based on counting the occurrence of the text’s most frequent words in each sentence. 
 However this may not necessarily be the best way of ranking the sentences. 
-For example the given algorithm will generate a summary text that contains sentences arranged in the order of their importance, 
-not necessarily in their original order or in a meaningful order. 
+For example the given algorithm will generate a summary text that contains sentences arranged in the order of their importance, not necessarily in their original order or in a meaningful order. 
 Spurious results will occur if most sentences contain the same number of most frequent words. 
-You are encouraged to explore if there are any alternative ranking techniques or additional statistical processing 
-that might be applied to further generate a more meaningful output.
+You are encouraged to explore if there are any alternative ranking techniques or additional statistical processing that might be applied to further generate a more meaningful output.

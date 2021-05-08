@@ -20,7 +20,7 @@ namespace SummaryApp
                 inFileLocation = Console.ReadLine();
             }
 
-            Console.WriteLine("Enter summarization factor:");
+            Console.WriteLine("Enter summarization factor (1-100%):");
             while (int.TryParse(Console.ReadLine(), out summarizationFactor) && summarizationFactor <= 0)
             {
                 Console.WriteLine("Please enter a valid number (1-100).");
