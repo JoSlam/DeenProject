@@ -1,0 +1,13 @@
+C:\Users\JoSlam\Desktop\SummaryApp\bin\Debug\netcoreapp3.1\SummaryApp.exe
+C:\Users\JoSlam\Desktop\SummaryApp\bin\Debug\netcoreapp3.1\SummaryApp.deps.json
+C:\Users\JoSlam\Desktop\SummaryApp\bin\Debug\netcoreapp3.1\SummaryApp.runtimeconfig.json
+C:\Users\JoSlam\Desktop\SummaryApp\bin\Debug\netcoreapp3.1\SummaryApp.runtimeconfig.dev.json
+C:\Users\JoSlam\Desktop\SummaryApp\bin\Debug\netcoreapp3.1\SummaryApp.dll
+C:\Users\JoSlam\Desktop\SummaryApp\bin\Debug\netcoreapp3.1\SummaryApp.pdb
+C:\Users\JoSlam\Desktop\SummaryApp\obj\Debug\netcoreapp3.1\SummaryApp.csprojAssemblyReference.cache
+C:\Users\JoSlam\Desktop\SummaryApp\obj\Debug\netcoreapp3.1\SummaryApp.AssemblyInfoInputs.cache
+C:\Users\JoSlam\Desktop\SummaryApp\obj\Debug\netcoreapp3.1\SummaryApp.AssemblyInfo.cs
+C:\Users\JoSlam\Desktop\SummaryApp\obj\Debug\netcoreapp3.1\SummaryApp.csproj.CoreCompileInputs.cache
+C:\Users\JoSlam\Desktop\SummaryApp\obj\Debug\netcoreapp3.1\SummaryApp.dll
+C:\Users\JoSlam\Desktop\SummaryApp\obj\Debug\netcoreapp3.1\SummaryApp.pdb
+C:\Users\JoSlam\Desktop\SummaryApp\obj\Debug\netcoreapp3.1\SummaryApp.genruntimeconfig.cache
