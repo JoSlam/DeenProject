@@ -1,8 +1,16 @@
-﻿namespace SummaryApp.Models
+﻿using System.Collections.Generic;
+
+namespace SummaryApp.Models
 {
     public class WordList
     {
         public ListNode<string> Head;
+
+        public WordList() { }
+        public WordList(List<string> list)
+        {
+            list.ForEach(word => Add(word));
+        }
 
         public void Add(string word)
         {
@@ -14,6 +22,15 @@
             {
                 var last = GetLastNode();
                 last.Next = new ListNode<string>(word);
+            }
+        }
+
+        public void AddRange(WordList wordList)
+        {
+            var curr = wordList.Head;
+            while (curr != null)
+            {
+                this.Add(curr.Data);
             }
         }
 
@@ -41,7 +58,7 @@
         {
             var curr = Head;
 
-            while (curr != null && curr.Data.Equals(data))
+            while (curr != null && !curr.Data.Equals(data))
             {
                 curr = curr.Next;
             }

@@ -50,19 +50,24 @@ namespace SummaryApp
                 .ToList();
         }
 
-        public static List<string> GetSentencesFromFile(string filePath)
+        public static WordList GetSentencesFromFile(string filePath)
         {
             // It is assumed that each new line contains a new sentence
-            return File.ReadLines(filePath).Select(i => i.Trim()).ToList();
+            var sentences = File.ReadLines(filePath).Select(i => i.Trim()).ToList();
+            return new WordList(sentences);
         }
 
-        public static List<string> GetWordsFromString(string sentence)
+        public static WordList GetWordsFromString(string sentence)
         {
-            return sentence
+            var words = sentence
                 .Split(' ')
                 .Where(i => !string.IsNullOrEmpty(i))
                 .Select(CleanWord)
                 .ToList();
+
+            var wordList = new WordList(words);
+
+            return wordList;
         }
 
         public static string CleanWord(string word)
