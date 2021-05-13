@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Threading.Tasks;
 
 namespace SummaryApp
@@ -18,7 +16,7 @@ namespace SummaryApp
         {
             // stop file data
             var stopFileLocation = "../../../Data/stopwords.txt";
-            List<string> stopWords = ProcessorUtils.GetAllWordsFromFile(stopFileLocation);
+            var stopWords = ProcessorUtils.GetAllWordsFromFile(stopFileLocation);
 
             // inFile data
             var inFileLocation = "";
@@ -32,10 +30,10 @@ namespace SummaryApp
                 {
                     case ConsoleKey.NumPad1:
                     case ConsoleKey.D1:
-                        if (stopWords != null && stopWords.Count > 0)
+                        if (stopWords != null && stopWords.Count() > 0)
                         {
                             ProcessorUtils.PrintMessage("Printing stopword list:", ConsoleColor.Green);
-                            stopWords.ForEach(Console.WriteLine);
+                            stopWords.PrintWordList();
                         }
                         else
                         {
@@ -64,12 +62,12 @@ namespace SummaryApp
                         if (!string.IsNullOrEmpty(inFileLocation))
                         {
                             var sentences = ProcessorUtils.GetSentencesFromFile(inFileLocation);
-                            var inFileWords = sentences.SelectMany(ProcessorUtils.GetWordsFromString).ToList();
+                            var inFileWords = sentences.SelectMany(ProcessorUtils.GetWordsFromString);
                             var inFileFreqList = ProcessorUtils.BuildWordFrequencyList(inFileWords);
-                            inFileFreqList.Sort(new WordDataComparer(SortOrder.Descending));
+                            inFileFreqList.Sort();
 
                             ProcessorUtils.PrintMessage("Printing word frequency list:", ConsoleColor.Green);
-                            ProcessorUtils.PrintWordList(inFileFreqList);
+                            inFileFreqList.PrintWordDataList();
                         }
                         else
                         {
@@ -84,7 +82,7 @@ namespace SummaryApp
                             var sentences = ProcessorUtils.GetSentencesFromFile(inFileLocation);
                             ProcessorUtils.PrintMessage("Printing input sentences.", ConsoleColor.Green);
 
-                            sentences.ForEach(Console.WriteLine);
+                            sentences.PrintWordList();
                         }
                         else
                         {

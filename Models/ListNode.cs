@@ -1,7 +1,4 @@
-﻿using System;
-using System.Diagnostics.CodeAnalysis;
-
-namespace SummaryApp.Models
+﻿namespace SummaryApp.Models
 {
     public class ListNode<T>
     {

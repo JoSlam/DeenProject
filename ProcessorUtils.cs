@@ -18,17 +18,16 @@ namespace SummaryApp
             Console.ResetColor();
         }
 
-        public static void PrintWordList(List<WordData> wordList)
-        {
-            wordList.ForEach(i => Console.WriteLine($"Word: {i.Word} Frequency: {i.Frequency}"));
-        }
 
-        public static List<WordData> BuildWordFrequencyList(List<string> wordList)
+        public static WordDataList BuildWordFrequencyList(WordList wordList)
         {
             var wordDictionary = new Dictionary<string, WordData>();
 
-            wordList.ForEach(word =>
+            var curr = wordList.Head;
+
+            while (curr != null)
             {
+                var word = curr.Data;
                 if (wordDictionary.TryGetValue(word, out WordData existingNode))
                 {
                     // Increment word count if node already exists
@@ -38,16 +37,17 @@ namespace SummaryApp
                 {
                     wordDictionary.Add(word, new WordData() { Word = word, Frequency = 1 });
                 }
-            });
 
-            return wordDictionary.Select(kvp => kvp.Value).ToList();
+                curr = curr.Next;
+            }
+
+            var wordDataList = wordDictionary.Select(kvp => kvp.Value).ToList();
+            return new WordDataList(wordDataList);
         }
 
-        public static List<string> GetAllWordsFromFile(string filePath)
+        public static WordList GetAllWordsFromFile(string filePath)
         {
-            return GetSentencesFromFile(filePath)
-                .SelectMany(GetWordsFromString)
-                .ToList();
+            return GetSentencesFromFile(filePath).SelectMany(GetWordsFromString);
         }
 
         public static WordList GetSentencesFromFile(string filePath)
