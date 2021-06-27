@@ -14,12 +14,9 @@ namespace SummaryApp
 
         static async Task StartupAsync()
         {
-            // stop file data
-            var stopFileLocation = "../../../Data/stopwords.txt";
-            var stopWords = ProcessorUtils.GetAllWordsFromFile(stopFileLocation);
-
-            // inFile data
-            var inFileLocation = "";
+            // File paths
+            var stopFilePath = "";
+            var inFilePath = "";
 
             DisplayMenu();
             ConsoleKeyInfo input = Console.ReadKey();
@@ -30,59 +27,99 @@ namespace SummaryApp
                 {
                     case ConsoleKey.NumPad1:
                     case ConsoleKey.D1:
-                        if (stopWords != null && stopWords.Count() > 0)
-                        {
-                            ProcessorUtils.PrintMessage("Printing stopword list:", ConsoleColor.Green);
-                            stopWords.PrintWordList();
-                        }
-                        else
-                        {
-                            ProcessorUtils.PrintMessage("Stopword list is empty.", ConsoleColor.Red);
-                        }
-                        break;
-
-                    case ConsoleKey.NumPad2:
-                    case ConsoleKey.D2:
                         Console.WriteLine(Environment.NewLine);
-                        Console.Write("Enter infile location: ");
-                        inFileLocation = Console.ReadLine();
+                        Console.Write("Enter stopword file location: ");
+                        stopFilePath = Console.ReadLine();
 
-                        if (!File.Exists(inFileLocation))
+                        if (!File.Exists(stopFilePath))
                         {
                             ProcessorUtils.PrintMessage("File does not exist, enter a valid file location.", ConsoleColor.Red);
                         }
                         else
                         {
-                            ProcessorUtils.PrintMessage("File loaded.", ConsoleColor.Green);
+                            ProcessorUtils.PrintMessage("Stopword file loaded.", ConsoleColor.Green);
                         }
+                        break;
+
+                    case ConsoleKey.NumPad2:
+                    case ConsoleKey.D2:
+
+                        if (!string.IsNullOrEmpty(stopFilePath))
+                        {
+                            var stopWords = ProcessorUtils.GetWordsFromFile(stopFilePath);
+                            if (stopWords.Count() > 0)
+                            {
+                                ProcessorUtils.PrintMessage("Printing stopword list:", ConsoleColor.Green);
+                                stopWords.PrintWordList();
+                            }
+                            else
+                            {
+                                ProcessorUtils.PrintMessage("Stopword list is empty.", ConsoleColor.Red);
+                            }
+                        }
+                        else
+                        {
+                            ProcessorUtils.PrintMessage("No stop word file path set.", ConsoleColor.Red);
+                        }
+
                         break;
 
                     case ConsoleKey.NumPad3:
                     case ConsoleKey.D3:
-                        if (!string.IsNullOrEmpty(inFileLocation))
-                        {
-                            var sentences = ProcessorUtils.GetSentencesFromFile(inFileLocation);
-                            var inFileWords = sentences.SelectMany(ProcessorUtils.GetWordsFromString);
-                            var inFileFreqList = ProcessorUtils.BuildWordFrequencyList(inFileWords);
-                            inFileFreqList.Sort();
+                        Console.WriteLine(Environment.NewLine);
+                        Console.Write("Enter infile location: ");
+                        inFilePath = Console.ReadLine();
 
-                            ProcessorUtils.PrintMessage("Printing word frequency list:", ConsoleColor.Green);
-                            inFileFreqList.PrintWordDataList();
+                        if (!File.Exists(inFilePath))
+                        {
+                            ProcessorUtils.PrintMessage("File does not exist, enter a valid file location.", ConsoleColor.Red);
                         }
                         else
                         {
-                            ProcessorUtils.PrintMessage("No infile entered.", ConsoleColor.Red);
+                            ProcessorUtils.PrintMessage("Infile loaded.", ConsoleColor.Green);
                         }
                         break;
 
                     case ConsoleKey.NumPad4:
                     case ConsoleKey.D4:
-                        if (!string.IsNullOrEmpty(inFileLocation))
+                        if (!string.IsNullOrEmpty(inFilePath))
                         {
-                            var sentences = ProcessorUtils.GetSentencesFromFile(inFileLocation);
-                            ProcessorUtils.PrintMessage("Printing input sentences.", ConsoleColor.Green);
+                            var sentences = ProcessorUtils.GetSentencesFromFile(inFilePath);
+                            var inFileWords = sentences.SelectMany(ProcessorUtils.GetWordsFromString);
+                            var inFileFreqList = ProcessorUtils.BuildWordFrequencyList(inFileWords);
+                            inFileFreqList.Sort();
 
-                            sentences.PrintWordList();
+
+                            if (inFileFreqList.Count() > 0)
+                            {
+                                ProcessorUtils.PrintMessage("Printing word frequency list:", ConsoleColor.Green);
+                                inFileFreqList.PrintWordDataList();
+                            }
+                            else
+                            {
+                                ProcessorUtils.PrintMessage("Frequency list is empty.", ConsoleColor.Red);
+                            }
+                        }
+                        else
+                        {
+                            ProcessorUtils.PrintMessage("No infile path set.", ConsoleColor.Red);
+                        }
+                        break;
+
+                    case ConsoleKey.NumPad5:
+                    case ConsoleKey.D5:
+                        if (!string.IsNullOrEmpty(inFilePath))
+                        {
+                            var sentences = ProcessorUtils.GetSentencesFromFile(inFilePath);
+                            if (sentences.Count() > 0)
+                            {
+                                ProcessorUtils.PrintMessage("Printing input sentences.", ConsoleColor.Green);
+                                sentences.PrintWordList();
+                            }
+                            else
+                            {
+                                ProcessorUtils.PrintMessage("Infile is empty.", ConsoleColor.Red);
+                            }
                         }
                         else
                         {
@@ -90,11 +127,12 @@ namespace SummaryApp
                         }
                         break;
 
-                    case ConsoleKey.NumPad5:
-                    case ConsoleKey.D5:
-                        if (!string.IsNullOrEmpty(inFileLocation))
+                    case ConsoleKey.NumPad6:
+                    case ConsoleKey.D6:
+                        if (!string.IsNullOrEmpty(inFilePath))
                         {
                             int summarizationFactor;
+                            var stopWords = ProcessorUtils.GetAllWordsFromInfile(stopFilePath);
 
                             Console.WriteLine(Environment.NewLine);
                             Console.WriteLine("Enter summarization factor (1-100%):");
@@ -104,7 +142,7 @@ namespace SummaryApp
                                 Console.Write("Please enter a valid number (1-100): ");
                             }
 
-                            var inFileSentences = ProcessorUtils.GetSentencesFromFile(inFileLocation);
+                            var inFileSentences = ProcessorUtils.GetSentencesFromFile(inFilePath);
                             SummaryProcessor.SummarizeText(inFileSentences, summarizationFactor, stopWords);
                         }
                         else
@@ -113,8 +151,8 @@ namespace SummaryApp
                         }
                         break;
 
-                    case ConsoleKey.D6:
-                    case ConsoleKey.NumPad6:
+                    case ConsoleKey.D7:
+                    case ConsoleKey.NumPad7:
                         return;
                     default:
                         ProcessorUtils.PrintMessage("Unknown input.", ConsoleColor.Red);
@@ -132,12 +170,13 @@ namespace SummaryApp
         static void DisplayMenu()
         {
             ProcessorUtils.PrintMessage("Select an option:", ConsoleColor.Green);
-            Console.WriteLine("1. Display stop words.");
-            Console.WriteLine("2. Enter infile location.");
-            Console.WriteLine("3. Display word frequency distribution.");
-            Console.WriteLine("4. Display infile sentences.");
-            Console.WriteLine("5. Summarize text.");
-            Console.WriteLine("6. Quit.");
+            Console.WriteLine("1. Enter stop word file location.");
+            Console.WriteLine("2. Display stop words.");
+            Console.WriteLine("3. Enter infile location.");
+            Console.WriteLine("4. Display word frequency distribution.");
+            Console.WriteLine("5. Display infile sentences.");
+            Console.WriteLine("6. Summarize text.");
+            Console.WriteLine("7. Quit.");
             Console.Write("Option #: ");
         }
 

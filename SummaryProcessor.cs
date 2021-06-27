@@ -15,57 +15,64 @@ namespace SummaryApp
             var inFileWords = inFileSentences.SelectMany(ProcessorUtils.GetWordsFromString);
             var inFileWordLength = inFileWords.Count();
 
-
-            // Build frequency list (Sort by highest frequency)
-            var inFileFreqList = ProcessorUtils.BuildWordFrequencyList(inFileWords);
-            inFileFreqList.Sort();
-
-            // Filter word frequency list
-            inFileFreqList = stopWords != null ? FilterFrequencyList(inFileFreqList, stopWords) : inFileFreqList;
-
-            var summarizedText = new StringBuilder();
-
-            // Calculate summarization factor
-            var currentSF = CalculateSummarizationFactor(GetWordCount(summarizedText), inFileWordLength);
-            while (currentSF < summarizationFactor && inFileFreqList.Count() > 0 && inFileSentences.Count() > 0)
+            if (inFileWordLength > 0)
             {
-                var topWord = inFileFreqList.Head.Data;
+                // Build frequency list (Sort by highest frequency)
+                var inFileFreqList = ProcessorUtils.BuildWordFrequencyList(inFileWords);
+                inFileFreqList.Sort();
 
-                // Find sentence with highest word frequency
-                var sentenceWordOccurences = inFileSentences.Select(i =>
+                // Filter word frequency list
+                inFileFreqList = stopWords != null ? FilterFrequencyList(inFileFreqList, stopWords) : inFileFreqList;
+
+                var summarizedText = new StringBuilder();
+
+                // Calculate summarization factor
+                var currentSF = CalculateSummarizationFactor(GetWordCount(summarizedText), inFileWordLength);
+                while (currentSF < summarizationFactor && inFileFreqList.Count() > 0 && inFileSentences.Count() > 0)
                 {
-                    var sentenceWordList = ProcessorUtils.GetWordsFromString(i);
-                    var wordOccurences = sentenceWordList.Count(i => i == topWord.Word);
-                    return new WordData { Word = i, Frequency = wordOccurences };
-                });
+                    var topWord = inFileFreqList.Head.Data;
 
-                var highestFrequency = sentenceWordOccurences.Max(i => i.Frequency);
-                var sentenceWithMost = sentenceWordOccurences.FirstOrDefault(i => i.Frequency == highestFrequency);
+                    // Find sentence with highest word frequency
+                    var sentenceWordOccurences = inFileSentences.Select(i =>
+                    {
+                        var sentenceWordList = ProcessorUtils.GetWordsFromString(i);
+                        var wordOccurences = sentenceWordList.Count(i => i == topWord.Word);
+                        return new WordData { Word = i, Frequency = wordOccurences };
+                    });
 
-                var newSummaryWordCount = GetWordCount(summarizedText) + ProcessorUtils.GetWordsFromString(sentenceWithMost.Word).Count();
-                var newSF = CalculateSummarizationFactor(newSummaryWordCount, inFileWordLength);
+                    var highestFrequency = sentenceWordOccurences.Max(i => i.Frequency);
+                    var sentenceWithMost = sentenceWordOccurences.FirstOrDefault(i => i.Frequency == highestFrequency);
 
-                // TODO: Change summarization factor to float / double
-                if (newSF <= summarizationFactor)
-                {
-                    summarizedText.Append($"{sentenceWithMost.Word.Trim()} ");
-                    currentSF = newSF;
+                    var newSummaryWordCount = GetWordCount(summarizedText) + ProcessorUtils.GetWordsFromString(sentenceWithMost.Word).Count();
+                    var newSF = CalculateSummarizationFactor(newSummaryWordCount, inFileWordLength);
+
+                    // TODO: Change summarization factor to float / double
+                    if (newSF <= summarizationFactor)
+                    {
+                        summarizedText.Append($"{sentenceWithMost.Word.Trim()} ");
+                        currentSF = newSF;
+                    }
+
+                    inFileSentences.Remove(sentenceWithMost.Word);
+                    inFileFreqList.Remove(topWord);
                 }
 
-                inFileSentences.Remove(sentenceWithMost.Word);
-                inFileFreqList.Remove(topWord);
+                // Print summarized text to console
+                ProcessorUtils.PrintMessage("Summarized text", ConsoleColor.Green);
+                Console.Write(summarizedText.ToString());
+
+                // Print actual summarization factor
+                ProcessorUtils.PrintMessage($"Actual summarization factor: {currentSF}", ConsoleColor.Green);
+
+                // Print to file
+                string outFileName = GetOutFileName();
+                File.WriteAllText($"../../../Output/{outFileName}.txt", summarizedText.ToString());
+            }
+            else
+            {
+                Console.WriteLine("Cannot summarize input, infile is empty.");
             }
 
-            // Print summarized text to console
-            ProcessorUtils.PrintMessage("Summarized text", ConsoleColor.Green);
-            Console.Write(summarizedText.ToString());
-
-            // Print actual summarization factor
-            ProcessorUtils.PrintMessage($"Actual summarization factor: {currentSF}", ConsoleColor.Green);
-
-            // Print to file
-            string outFileName = GetOutFileName();
-            File.WriteAllText($"../../../Output/{outFileName}.txt", summarizedText.ToString());
         }
 
         private static string GetOutFileName()

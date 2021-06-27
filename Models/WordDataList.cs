@@ -197,7 +197,7 @@ namespace SummaryApp.Models
             while (curr != null)
             {
                 var data = curr.Data;
-                Console.WriteLine($"Word: {data.Word} Frequency: {data.Frequency}");
+                Console.WriteLine($"Word: {data.Word} | Frequency: {data.Frequency}");
                 curr = curr.Next;
             }
         }

@@ -45,16 +45,30 @@ namespace SummaryApp
             return new WordDataList(wordDataList);
         }
 
-        public static WordList GetAllWordsFromFile(string filePath)
+        public static WordList GetAllWordsFromInfile(string filePath)
         {
             return GetSentencesFromFile(filePath).SelectMany(GetWordsFromString);
         }
 
         public static WordList GetSentencesFromFile(string filePath)
         {
-            // It is assumed that each new line contains a new sentence
-            var sentences = File.ReadLines(filePath).Select(i => i.Trim()).ToList();
+            // Read all file input
+            string fileData = File.ReadAllText(filePath);
+            string sentencePattern = @"\S(.+?[.!?])(?=\s+|$)";
+
+            var sentences = new List<string>();
+            // Parse based on a typical sentence structure delimited by ".!?"
+            foreach (Match match in Regex.Matches(fileData, sentencePattern))
+            {
+                sentences.Add(match.Value);
+            }
             return new WordList(sentences);
+        }
+
+        public static WordList GetWordsFromFile(string filePath)
+        {
+            var words = File.ReadLines(filePath).Select(i => i.Trim()).ToList();
+            return new WordList(words);
         }
 
         public static WordList GetWordsFromString(string sentence)
